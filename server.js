@@ -126,6 +126,25 @@ app.delete('/record/:id', async (req, res) => {
   } catch(err) { res.json({ok:false, error:err.message}); }
 });
 
+// POST /update — edit record fields
+app.post('/update', async (req, res) => {
+  try {
+    const { id, name, cedula, cargo, edificio } = req.body;
+    if(!id||!name||!cedula||!cargo||!edificio)
+      return res.json({ok:false, error:'Missing fields'});
+    const r = await pool.query(
+      'UPDATE inducciones SET nombre=$1, cedula=$2, cargo=$3, edificio=$4, dependencia=$4 WHERE id=$5 RETURNING id',
+      [name, cedula, cargo, edificio, id]
+    );
+    if(r.rows.length) {
+      console.log(`✏️  Updated record ${id}: ${name}`);
+      res.json({ok:true});
+    } else {
+      res.json({ok:false, error:'Record not found'});
+    }
+  } catch(err) { res.json({ok:false, error:err.message}); }
+});
+
 // GET /health
 app.get('/health', (req,res) => res.json({ok:true, message:'Don Aseo API running en Railway 🚀'}));
 
